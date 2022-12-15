@@ -45,7 +45,7 @@ async function fetchImage(inputSearch, page) {
         image_type: 'photo',
         safesearch: true,
         page: page,
-        per_page: 3,
+        per_page: 40,
       },
     });
     return response;
