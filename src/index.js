@@ -1,84 +1,66 @@
-import axios from 'axios';
+// import axios from 'axios';
+import Notiflix from 'notiflix';
+
+import renderCard from './js/renderCard';
+import { fetchImage } from './js/fetchImage';
 
 const form = document.querySelector('.search-form');
 const btn = document.querySelector('.load-more');
+const divBtn = document.querySelector('.button-more');
 const gallery = document.querySelector('.gallery');
-
-let inputSearch = '';
 let page = 1;
+let inputSearch = '';
+
 form.addEventListener('submit', handleSubmit);
-btn.addEventListener('submit', handleSubmit);
+btn.addEventListener('click', handleSubmit);
+
 btn.classList.add('is-hidden');
+divBtn.classList.add('is-hidden');
 
 function handleSubmit(event) {
   event.preventDefault();
+  gallery.innerHTML = '';
+  // const {
+  //   elements: { searchQuery },
+  // } = event.currentTarget;
 
-  const {
-    elements: { searchQuery },
-  } = event.currentTarget;
+  // inputSearch = searchQuery.value;
+  inputSearch = event.target.searchQuery.value;
+  page += 1;
+  if (!inputSearch) {
+    Notiflix.Notify.warning('The search does not have to be empty!');
 
-  inputSearch = searchQuery.value;
+    btn.classList.remove('hidden');
+    divBtn.classList.remove('hidden');
 
-  console.log(inputSearch);
+    return;
+  }
 
   fetchImage(inputSearch, page)
     .then(images => {
-      renderCard(images);
-      page += 1;
-      console.log(page);
-      if (page > 1) {
-        btn.textContent = 'Fetch more posts';
-        btn.classList.remove('is-hidden');
+      // consol.log(images);
+      if (!images.data.total) {
+        Notiflix.Notify.failure(
+          'Sorry, there are no images matching your search query. Please try again.'
+        );
+        return;
+      } else if (images.data.totalHits <= (page - 1) * 40) {
+        Notiflix.Notify.failure('O-o-ops, pictures are over');
+        btn.classList.remove('hidden');
+        divBtn.classList.remove('hidden');
+        return;
       }
-    })
-    .catch(error => console.log(error));
-}
+      renderCard(images);
+      btn.classList.add('hidden');
+      divBtn.classList.add('hidden');
 
-async function fetchImage(inputSearch, page) {
-  try {
-    const response = await axios({
-      url: `https://pixabay.com/api/`,
-      params: {
-        key: '28348938-0384dcc8789dbce7d9ed883a2',
-        q: inputSearch,
-        orientation: 'horizontal',
-        image_type: 'photo',
-        safesearch: true,
-        page: page,
-        per_page: 40,
-      },
-    });
-    return response;
-  } catch (error) {
-    console.log(error.message);
-  }
-}
-function renderCard(images) {
-  const arr = images.data.hits;
-  const imageList = arr
-    .map(item => {
-      return `
-    
-    <div class="photo-card"> 
-      <a href="${item.largeImageURL}">
-        <img  src="${item.webformatURL}" alt="${item.tags}" loading="lazy" />
-      </a>
-      <div class="info">
-        <p class="info-item">
-          <b>Likes: ${item.likes}</b>
-        </p>
-        <p class="info-item">
-          <b>Views: ${item.views}</b>
-        </p>
-        <p class="info-item">
-          <b>Comments: ${item.comments}</b>
-        </p>
-        <p class="info-item">
-          <b>Downloads: ${item.downloads}</b>
-        </p>
-      </div>
-    </div>`;
+      Notiflix.Notify.success(
+        `Hooray! We found pictures from ${images.data.totalHits} images.`
+      );
     })
-    .join('');
-  gallery.insertAdjacentHTML('beforeend', imageList);
+    .catch(() => {
+      Notiflix.Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+    });
 }
