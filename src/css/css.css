@@ -21,10 +21,10 @@ img {
   width: 100%;
 }
 .gallery {
-  /* background-color: rgb(222, 222, 222); */
   justify-content: center;
   margin-left: auto;
   margin-right: auto;
+
   margin-top: 30px;
   margin-bottom: 30px;
   display: flex;
